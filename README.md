@@ -1,6 +1,9 @@
 # uk-cpi-prophet-forecast
 Time series forecasting project using UK CPI data and Meta Prophet in R
 
+## Live Project
+[Click here to view the full report] https://uk-cpi-prophet-forecast.netlify.app/
+
 This project analyses UK inflation using Consumer Price Index (CPI) data from the FRED database and applies Meta’s Prophet model to generate forecasts.
 
 ## Project contents
@@ -19,6 +22,8 @@ This project analyses UK inflation using Consumer Price Index (CPI) data from th
 ## Files
 - `Coursework1_220625230.Rmd`
 - `Coursework1_220625230.Rproj`
+- `Coursework1_220625230.R`
+- `QMlogo.png`
 - `CPI-UK.xlsx`
 
 ## Summary
