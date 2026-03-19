@@ -1,0 +1,140 @@
+---
+title: "MTH6139 Time Series" 
+subtitle: "Coursework 1 -- 220625230" 
+author: "Tarek Ibne Alam" 
+date: "March 2026" 
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: spacelab 
+    highlight: tango
+---
+ 
+```{r, echo=FALSE}
+# This code will display the QMUL logo at the top right of the page
+# Do not change this code
+htmltools::img(src = knitr::image_uri("images/QMlogo.png"),
+               alt = 'logo',
+               style = 'position:absolute; top:0; right:0; padding:10px; width:20%;')
+```
+
+# UK CPI Inflation Forecasting using Prophet
+
+
+## 1. Introduction
+This project looks at inflation in the UK using the Consumer Price Index (CPI) time series. The main model used is Meta’s Prophet, which is applied to generate forecasts.
+
+The aim of this project is to understand how inflation behaves over time. In particular, it focuses on identifying patterns such as trends and seasonality, and then evaluating how well the model performs when making forecasts. This type of analysis is widely used in economics and finance to understand price dynamics and support forecasting decisions.
+
+
+## 2. Data
+The dataset used in this project comes from the Federal Reserve Economic Data (FRED) database and contains the Consumer Price Index (CPI) for the United Kingdom. The data is recorded monthly and gives a measure of how inflation changes over time.
+
+Before applying the model, the dataset was cleaned and prepared. The column names were changed to match the format required by the Prophet model, where ds represents the date and y represents the CPI values. The date column was converted into a proper Date format, and any missing values were removed to keep the dataset consistent and ready for analysis.
+
+```{r message=FALSE, warning=FALSE}
+library(readxl)
+
+data_raw <- read_excel("CPI-UK.xlsx")
+
+colnames(data_raw) <- c("ds", "y")
+
+data_raw$ds <- as.Date(data_raw$ds)
+data_raw$y <- as.numeric(data_raw$y)
+
+data_clean <- na.omit(data_raw)
+
+head(data_clean)
+```
+
+
+## 3. Exploratory Analysis
+
+```{r, echo=FALSE}
+plot(data_clean$ds, data_clean$y, type = "l",
+     main = "UK CPI over Time",
+     xlab = "Date",
+     ylab = "CPI")
+```
+
+The time series plot of UK CPI inflation shows that the values move around a fairly stable level, rather than following a clear long-term upward trend. This makes sense because inflation measures the rate of change in prices, not the actual price level.
+
+One clear feature of the series is the high volatility during the 1970s and early 1980s, where inflation shows large spikes and sharp fluctuations. After this period, especially from the 1990s onwards, the series becomes more stable, with smaller changes in inflation.
+
+In the more recent period, inflation starts to increase again, with some noticeable spikes towards the end of the sample. Overall, there is no strong evidence of seasonality, but the level of volatility clearly changes over time.
+
+
+## 4. Prophet Model
+
+Prophet is an additive time series model that breaks the data down into components such as trend, seasonality, and error. This makes it suitable for modelling time series data with changing patterns over time.
+
+```{r message=FALSE, warning=FALSE}
+library(prophet)
+
+model <- prophet(data_clean)
+
+future <- make_future_dataframe(model, periods = 24, freq = "month")
+
+forecast <- predict(model, future)
+
+plot(model, forecast)
+```
+
+The Prophet model was used to generate forecasts for UK CPI inflation. The fitted values follow the overall movement of the data quite well, capturing the general pattern while smoothing out short-term fluctuations.
+
+However, the model does not fully capture extreme spikes in inflation, especially during highly volatile periods like the 1970s. This is a limitation of the model, as it is designed to focus on the underlying trend rather than sudden shocks.
+
+The forecast suggests that inflation is likely to remain relatively stable in the near future, with no clear upward or downward trend. The uncertainty intervals also widen over time, which shows that predictions become less certain the further ahead we forecast.
+
+
+## 5. Component Analysis
+```{r message=FALSE, warning=FALSE}
+prophet_plot_components(model, forecast)
+```
+
+
+The component plots give a clearer understanding of how the Prophet model breaks the time series down into different parts, mainly the trend and seasonal components.
+
+The trend component shows that inflation increased from the 1950s up to the late 1970s, and then gradually declined until the early 2000s. This matches what we would expect historically, as the 1970s were a period of high inflation, followed by more stable inflation in later years. In the most recent period, the trend starts to increase slightly again, suggesting a gradual rise in inflation.
+
+The yearly seasonality component suggests that inflation follows some repeating patterns within each year. Even though this is not very obvious from the raw time series plot, the model is still able to detect small but consistent differences across months. This means that certain months tend to have slightly higher or lower inflation rates.
+
+Overall, the decomposition shows that the time series is mainly driven by long-term changes in the trend, along with smaller seasonal effects.
+
+
+## 6. Model Validation
+
+```{r message=FALSE, warning=FALSE}
+train <- data_clean[1:700, ]
+test <- data_clean[701:nrow(data_clean), ]
+
+model_train <- prophet(train)
+
+future_train <- make_future_dataframe(model_train, periods = nrow(test), freq = "month")
+
+forecast_train <- predict(model_train, future_train)
+
+plot(model_train, forecast_train)
+```
+
+To evaluate the performance of the model, the dataset was split into a training set and a testing set. The Prophet model was fitted on the training data, and forecasts were then generated for the test period.
+
+The results show that the model is able to capture the overall behaviour of inflation quite well, as it follows the general level and direction of the series. However, it struggles to accurately predict sharp spikes in inflation, especially during periods of high volatility.
+
+This shows a limitation of the model, since Prophet is mainly designed to capture underlying trends and seasonal patterns rather than sudden economic shocks. Despite this, the model still provides a reasonable approximation of the data and performs well in predicting general movements in inflation.
+
+
+## 7. Limitations
+
+One limitation of the Prophet model is that it cannot fully capture sudden shocks or extreme fluctuations in the data. This can be seen in periods like the 1970s, where large spikes in inflation are not accurately reflected by the model.
+
+Another limitation is that the model assumes future patterns will be similar to past behaviour. In reality, this may not always be the case, especially when there are major economic changes or unexpected external shocks. Because of this, the forecasts should be interpreted with some caution.
+
+## 8. Conclusion
+
+This project applied the Prophet forecasting model to UK CPI inflation data. The analysis showed that inflation does not follow a clear long-term upward trend, but instead moves around a relatively stable level, with some periods of higher volatility.
+
+The Prophet model was able to capture the overall trend and general behaviour of the series quite well, although it struggled to model extreme fluctuations. The forecasts suggest that inflation is likely to remain relatively stable in the near future, based on past patterns.
+
+Overall, the results show that Prophet is a useful tool for modelling and forecasting time series data, especially when the focus is on underlying trends rather than short-term shocks.
